@@ -3,3 +3,4 @@ Include
 Lib
 scripts
 pyenv.cfg
+.env
