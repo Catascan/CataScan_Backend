@@ -8,19 +8,21 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 
-// Middleware yang WAJIB ada
 app.use(cors());
-app.use(express.json()); // <--- INI PENTING!
+app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// Routes
-app.use('/', authRoutes);
-app.use('/:username', dashboardRoutes);
+// ✅ PUBLIC ROUTES (no token)
+app.use('/auth', authRoutes);
 
+// ✅ PRIVATE ROUTES (butuh token JWT dari Bearer)
+app.use('/:username/dashboard', dashboardRoutes);
+
+// Optional root
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Catascan! Backend is running.' });
 });
 
 sequelize.sync()
-  .then(() => app.listen(3000, () => console.log('Express running at http://localhost:3000')))
+  .then(() => app.listen(3000, () => console.log('✅ Server jalan di http://localhost:3000')))
   .catch(err => console.error(err));

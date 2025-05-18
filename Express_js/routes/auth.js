@@ -7,8 +7,9 @@ require('dotenv').config();
 
 const router = express.Router();
 
+// =============== REGISTER =================
 router.get('/register', (req, res) => {
-  res.status(200).json({ message: 'Gunakan POST /register dengan JSON: { username, password }' });
+  res.status(200).json({ message: 'Gunakan POST /register dengan JSON: { username, email, password, retype_password }' });
 });
 
 router.post('/register', async (req, res) => {
@@ -47,15 +48,17 @@ router.post('/register', async (req, res) => {
   }
 });
 
-
-
+// ================ LOGIN ===================
 router.get('/login', (req, res) => {
-  res.status(200).json({ message: 'Gunakan POST /login dengan JSON: { username, password }' });
+  res.status(200).json({ message: 'Gunakan POST /login dengan JSON: { login, password }' });
 });
 
 router.post('/login', async (req, res) => {
   try {
     const { login, password } = req.body;
+
+    console.log('🔐 Login request:', req.body);
+
     if (!login || !password) {
       return res.status(400).json({ error: 'Login dan password wajib diisi' });
     }
@@ -66,16 +69,20 @@ router.post('/login', async (req, res) => {
       }
     });
 
+    console.log('🔍 User ditemukan:', user?.username || '❌ Tidak ditemukan');
+
     if (!user) {
       return res.status(404).json({ error: 'User tidak ditemukan' });
     }
 
     const valid = await bcrypt.compare(password, user.password);
+    console.log('✅ Password cocok:', valid);
+
     if (!valid) {
       return res.status(401).json({ error: 'Password salah' });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY);
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
     console.log(`[200] Login berhasil untuk: ${user.username}`);
     res.status(200).json({
       message: '✅ Login berhasil',
@@ -87,7 +94,5 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
-
-
 
 module.exports = router;

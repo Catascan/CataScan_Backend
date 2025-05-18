@@ -29,7 +29,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 class Result(db.Model):
     __tablename__ = 'Results'
     id = db.Column(db.Integer, primary_key=True)
-    image_path = db.Column(db.String)
+    image_path = db.Column(db.String)  # contoh: static/uploads/IMMATURE.jpg
     prediction = db.Column(db.String)
     explanation = db.Column(db.Text)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
@@ -40,7 +40,7 @@ class Result(db.Model):
 def homepage():
     return {"message": "✅ Catascan Flask aktif. Gunakan POST /predict"}
 
-# Optional normalize=False to debug preprocessing
+# Image preprocessing function
 def preprocess_image(image_path, normalize=False):
     img = Image.open(image_path).convert('RGB')
     img = img.resize((256, 256))
@@ -53,21 +53,24 @@ def preprocess_image(image_path, normalize=False):
 # Predict endpoint
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'image' not in request.files or 'user_id' not in request.form:
-        return jsonify({"error": "image dan user_id wajib diisi"}), 400
+    if 'image' not in request.files:
+        return jsonify({"error": "image wajib diisi"}), 400
 
     file = request.files['image']
     user_id = request.form.get('user_id')
-    filename = file.filename
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
 
-    # Preprocess & convert
-    input_img = preprocess_image(filepath)
+    # Simpan dengan path relatif
+    filename = file.filename
+    relative_path = os.path.join(UPLOAD_FOLDER, filename).replace("\\", "/")
+    file.save(relative_path)
+    public_url = f"http://localhost:5000/{relative_path}"
+
+    # Prediksi
+    input_img = preprocess_image(relative_path)
     input_tensor = tf.convert_to_tensor(input_img, dtype=tf.float32)
     prediction_result = predict_fn(input_tensor)
     prediction_values = list(prediction_result.values())[0].numpy()
-    
+
     label_map = ['immature', 'mature', 'normal']
     pred_index = np.argmax(prediction_values)
     pred_label = label_map[pred_index]
@@ -83,8 +86,9 @@ def predict():
     }
     explanation = explanation_dict.get(pred_label, 'Tidak diketahui')
 
+    # Simpan ke DB
     result = Result(
-        image_path=filepath,
+        image_path=relative_path,
         prediction=pred_label,
         explanation=explanation,
         UserId=user_id
@@ -95,9 +99,10 @@ def predict():
     return jsonify({
         "prediction": pred_label,
         "explanation": explanation,
-        "confidence_scores": confidence
+        "confidence_scores": confidence,
+        "photoUrl": public_url,
+        "image_path": relative_path
     })
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

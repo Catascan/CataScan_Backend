@@ -4,3 +4,5 @@ Lib
 scripts
 pyenv.cfg
 .env
+static
+app_v1.py
