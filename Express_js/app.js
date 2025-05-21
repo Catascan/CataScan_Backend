@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
+const TokenBlacklist = require('./models/TokenBlacklist'); // tambahkan ini
 
 const app = express();
 
@@ -12,15 +13,11 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// ✅ PUBLIC ROUTES (no token)
 app.use('/auth', authRoutes);
-
-// ✅ PRIVATE ROUTES (butuh token JWT dari Bearer)
 app.use('/:username/dashboard', dashboardRoutes);
 
-// Optional root
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Catascan! Backend is running.' });
+  res.json({ message: '✅ Welcome to Catascan! Backend is running.' });
 });
 
 sequelize.sync()
