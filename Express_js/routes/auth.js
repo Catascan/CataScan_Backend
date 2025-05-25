@@ -97,13 +97,15 @@ router.patch('/profile/edit', verifyToken, upload.single('image'), async (req, r
       await user.save();
     }
 
+    const imageLink = user.image ? `${req.protocol}://${req.get('host')}/${user.image}` : null;
+
     res.status(200).json({
       message: '✅ Gambar profil berhasil diperbarui',
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
-        image: user.image,
+        image_link: imageLink,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -112,6 +114,7 @@ router.patch('/profile/edit', verifyToken, upload.single('image'), async (req, r
     res.status(500).json({ error: 'Gagal update gambar', details: err.message });
   }
 });
+
 
 // =================== CHANGE PASSWORD (TANPA password lama) ===================
 router.patch('/change-password', verifyToken, async (req, res) => {
