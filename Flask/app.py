@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Load SavedModel
-MODEL_PATH = os.getenv("MODEL_PATH", "best_model/best_model")
+MODEL_PATH = os.getenv("MODEL_PATH", "best_model_fixx/best_model_fixx")
 model = tf.saved_model.load(MODEL_PATH)
 predict_fn = model.signatures["serving_default"]
 
@@ -29,7 +29,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 class Result(db.Model):
     __tablename__ = 'Results'
     id = db.Column(db.Integer, primary_key=True)
-    image_path = db.Column(db.String)  # contoh: static/uploads/IMMATURE.jpg
+    image_path = db.Column(db.String)
     prediction = db.Column(db.String)
     explanation = db.Column(db.Text)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
@@ -40,17 +40,14 @@ class Result(db.Model):
 def homepage():
     return {"message": "✅ Catascan Flask aktif. Gunakan POST /predict"}
 
-# Image preprocessing function
-def preprocess_image(image_path, normalize=False):
+# Preprocessing sesuai model CNN fundus2
+def preprocess_image(image_path):
     img = Image.open(image_path).convert('RGB')
-    img = img.resize((256, 256))
-    img = np.array(img).astype(np.float32)
-    if normalize:
-        img = img / 255.0
+    img = img.resize((64, 64), resample=Image.BOX)
+    img = np.array(img).astype(np.float32) / 255.0
     img = np.expand_dims(img, axis=0)
     return img
 
-# Predict endpoint
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:
@@ -59,13 +56,11 @@ def predict():
     file = request.files['image']
     user_id = request.form.get('user_id')
 
-    # Simpan dengan path relatif
     filename = file.filename
     relative_path = os.path.join(UPLOAD_FOLDER, filename).replace("\\", "/")
     file.save(relative_path)
     public_url = f"http://localhost:5000/{relative_path}"
 
-    # Prediksi
     input_img = preprocess_image(relative_path)
     input_tensor = tf.convert_to_tensor(input_img, dtype=tf.float32)
     prediction_result = predict_fn(input_tensor)
@@ -80,13 +75,12 @@ def predict():
     }
 
     explanation_dict = {
-        'normal': 'Tidak ditemukan indikasi katarak.',
+        'immature': 'Kekeruhan sebagian pada lensa (immature cataract).',
         'mature': 'Lensa mengalami kekeruhan total (mature cataract).',
-        'immature': 'Kekeruhan sebagian pada lensa (immature cataract).'
+        'normal': 'Tidak ditemukan indikasi katarak.'
     }
     explanation = explanation_dict.get(pred_label, 'Tidak diketahui')
 
-    # Simpan ke DB
     result = Result(
         image_path=relative_path,
         prediction=pred_label,

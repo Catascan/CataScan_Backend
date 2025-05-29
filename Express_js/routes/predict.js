@@ -8,7 +8,6 @@ const Result = require('../models/Result');
 const User = require('../models/User');
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
 
 // Middleware: Validasi username
 router.use(async (req, res, next) => {

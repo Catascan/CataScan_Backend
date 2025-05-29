@@ -4,6 +4,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const moment = require('moment-timezone');
 
 const Article = require('../models/Article');
 const Result = require('../models/Result');
@@ -121,9 +122,9 @@ router.get('/history', async (req, res) => {
       id: r.id,
       prediction: r.prediction,
       explanation: r.explanation,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-      photoUrl: `http://localhost:3000/${r.image_path.replace(/\\/g, '/')}`
+      createdAt: moment(r.createdAt).tz('Asia/Jakarta').format('YYYY-MMM-DD HH:mm:ss'),
+      updatedAt: moment(r.updatedAt).tz('Asia/Jakarta').format('YYYY-MMM-DD HH:mm:ss'),
+      photoUrl: `${req.protocol}://${req.get('host')}/${r.image_path.replace(/\\/g, '/')}`
     }));
 
     res.status(200).json({

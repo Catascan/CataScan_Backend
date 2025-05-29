@@ -85,6 +85,27 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
+// =================== GET USER INFO (username + image_link) ===================
+router.get('/user', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.userId);
+    if (!user) return res.status(404).json({ error: 'User tidak ditemukan' });
+
+    const imageLink = user.image ? `${req.protocol}://${req.get('host')}/${user.image}` : null;
+
+    res.status(200).json({
+      message: '✅ Info user berhasil diambil',
+      user: {
+        username: user.username,
+        username_copy: user.username,
+        image_link: imageLink,
+        email:user.email
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal mengambil info user', details: err.message });
+  }
+});
 
 // =================== EDIT PROFILE (GAMBAR) ===================
 router.patch('/profile/edit', verifyToken, upload.single('image'), async (req, res) => {
@@ -114,7 +135,6 @@ router.patch('/profile/edit', verifyToken, upload.single('image'), async (req, r
     res.status(500).json({ error: 'Gagal update gambar', details: err.message });
   }
 });
-
 
 // =================== CHANGE PASSWORD (TANPA password lama) ===================
 router.patch('/change-password', verifyToken, async (req, res) => {
