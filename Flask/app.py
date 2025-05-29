@@ -67,6 +67,7 @@ def predict():
     prediction_values = list(prediction_result.values())[0].numpy()
 
     label_map = ['immature', 'mature', 'normal']
+    print("Raw prediction values:", prediction_values)
     pred_index = np.argmax(prediction_values)
     pred_label = label_map[pred_index]
 
