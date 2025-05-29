@@ -1,9 +1,39 @@
+# Node (Express)
+Express_js/node_modules/
+Express_js/package-lock.json
+Express_js/uploads/
+Express_js/.env
+
+# Python (Flask)
+Flask/venv/
+Flask/__pycache__/
+Flask/.env
+Flask/static/uploads/
+Flask/app_v1.py
+Flask/best_model/
+Flask/best_model_fix/
+Flask/best_model_fixx/
+Flask/best_model_2/
+Flask/best_model_3/
+Flask/*.h5
+
+# Model training or raw data
+ML/
+
+# IDE / VSCode / Temp
+*.pyc
+*.log
+*.swp
+.DS_Store
+.env
+.qodo
+__pycache__/
+
+# Root-level artifacts
 asset.txt
 prompt.txt
-.qodo
 Catascan API Documentation.txt
 package-lock.json
 package.json
-prompt.txt
-node_modules
-ML
+node_modules/
+uploads/
